@@ -1,3 +1,9 @@
+python-attrs (16.3.0-1pexip1) pexip; urgency=medium
+
+  * Prepare Pexip packaging
+
+ -- John-Mark Bell <jmb@pexip.com>  Fri, 03 Aug 2018 16:44:06 +0000
+
 python-attrs (16.3.0-1) unstable; urgency=medium
 
   * New upstream release.

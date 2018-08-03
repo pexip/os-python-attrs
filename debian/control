@@ -1,8 +1,9 @@
 Source: python-attrs
 Section: python
 Priority: optional
-Maintainer: Debian Python Modules Team <python-modules-team@lists.alioth.debian.org>
-Uploaders: Tristan Seligmann <mithrandi@debian.org>
+Maintainer: Pexip AS <packaging@pexip.com>
+XSBC-Pexip-Original-Maintainer: Debian Python Modules Team <python-modules-team@lists.alioth.debian.org>
+XSBC-Pexip-Original-Uploaders: Tristan Seligmann <mithrandi@debian.org>
 Build-Depends:
  debhelper (>= 9),
  dh-python,
@@ -25,6 +26,7 @@ Standards-Version: 3.9.8
 Homepage: https://attrs.readthedocs.org/
 Vcs-Git: https://anonscm.debian.org/git/python-modules/packages/python-attrs.git
 Vcs-Browser: https://anonscm.debian.org/cgit/python-modules/packages/python-attrs.git
+XS-Pexip-Upstream: http://ftp.debian.org/debian/ stretch
 
 Package: python-attr
 Architecture: all
