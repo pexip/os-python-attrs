@@ -3,15 +3,17 @@ Section: python
 Priority: optional
 Maintainer: Debian Python Modules Team <python-modules-team@lists.alioth.debian.org>
 Uploaders: Tristan Seligmann <mithrandi@debian.org>
+Rules-Requires-Root: no
 Build-Depends:
- debhelper (>= 9),
- dh-python,
+ debhelper (>= 11),
+ dh-python (>= 3.20180313~),
  pypy,
  pypy-setuptools,
  python-all,
  python-hypothesis,
  python-pytest,
  python-setuptools,
+ python-six,
  python-sphinx-rtd-theme,
  python-zope.interface,
  python3-all,
@@ -19,12 +21,13 @@ Build-Depends:
  python3-hypothesis,
  python3-pytest,
  python3-setuptools,
+ python3-six,
  python3-sphinx,
  python3-zope.interface,
-Standards-Version: 3.9.8
+Standards-Version: 4.2.1
 Homepage: https://attrs.readthedocs.org/
-Vcs-Git: https://anonscm.debian.org/git/python-modules/packages/python-attrs.git
-Vcs-Browser: https://anonscm.debian.org/cgit/python-modules/packages/python-attrs.git
+Vcs-Git: https://salsa.debian.org/python-team/modules/python-attrs.git
+Vcs-Browser: https://salsa.debian.org/python-team/modules/python-attrs
 
 Package: python-attr
 Architecture: all
@@ -83,7 +86,7 @@ Description: Attributes without boilerplate (PyPy)
 Package: python-attr-doc
 Section: doc
 Architecture: all
-Priority: extra
+Multi-Arch: foreign
 Depends: ${misc:Depends}, ${sphinxdoc:Depends}
 Recommends: python3-doc
 Description: documentation for the attrs Python library
