@@ -1,3 +1,9 @@
+python-attrs (16.3.0-1pexip2) pexip; urgency=medium
+
+  * Python3
+
+ -- Carl Chipperfield <carl@pexip.com>  Sat, 22 Jun 2019 00:13:41 +0000
+
 python-attrs (16.3.0-1pexip1) pexip; urgency=medium
 
   * Prepare Pexip packaging
