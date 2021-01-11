@@ -14,6 +14,9 @@ import attr
 from .utils import make_class
 
 
+optional_bool = st.one_of(st.none(), st.booleans())
+
+
 def gen_attr_names():
     """
     Generate names for attributes, 'a'...'z', then 'aa'...'zz'.
@@ -131,7 +134,8 @@ def simple_attrs_with_metadata(draw):
         default=c_attr._default,
         validator=c_attr._validator,
         repr=c_attr.repr,
-        cmp=c_attr.cmp,
+        eq=c_attr.eq,
+        order=c_attr.order,
         hash=c_attr.hash,
         init=c_attr.init,
         metadata=metadata,
@@ -164,8 +168,8 @@ def simple_classes(
         c = attr.ib(default={'t': 1})
 
     By default, all combinations of slots, frozen, and weakref_slot classes
-    will be generated. If `slots=True` is passed in, only slots classes will be
-    generated, and if `slots=False` is passed in, no slot classes will be
+    will be generated.  If `slots=True` is passed in, only slotted classes will
+    be generated, and if `slots=False` is passed in, no slotted classes will be
     generated. The same applies to `frozen` and `weakref_slot`.
 
     By default, some attributes will be private (i.e. prefixed with an

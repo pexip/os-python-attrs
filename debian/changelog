@@ -1,3 +1,52 @@
+python-attrs (19.3.0-3~bpo10+1) buster-backports; urgency=medium
+
+  * Rebuild for buster-backports.
+
+ -- Andrej Shadura <andrewsh@debian.org>  Thu, 09 Jul 2020 08:43:44 +0200
+
+python-attrs (19.3.0-3) unstable; urgency=medium
+
+  * Dont run unittests for python2 binary, to reduce pytest rdeps
+
+ -- Sandro Tosi <morph@debian.org>  Mon, 13 Apr 2020 19:17:19 -0400
+
+python-attrs (19.3.0-2) unstable; urgency=medium
+
+  [ Emmanuel Arias ]
+  * Team Upload.
+  * d/tests/control: Fix autopkgtest. Use py3versions -s to use all
+    supported py3 versions.
+  * Bump Standards-Version to 4.5.0.
+  * d/gbp.conf: Set debian/master as default branch according to DEP-14.
+  * d/salsa-ci.yml: enable salsa-ci.
+
+ -- Emmanuel Arias <eamanu@yaerobi.com>  Fri, 20 Mar 2020 13:23:32 -0400
+
+python-attrs (19.3.0-1) unstable; urgency=medium
+
+  [ Adam Cecile ]
+  * New upstream release.
+  * Update intersphinx mapping patch to prepare to support zope.interface
+    (but this package does not build sphinx doc yet).
+  * Fix typo in debian/control.
+  * Improve clean target to be able to build twice in a row.
+
+  [ Ondřej Nový ]
+  * Use debhelper-compat instead of debian/compat.
+
+  [ Debian Janitor ]
+  * Set upstream metadata fields: Bug-Database, Repository, Repository-
+    Browse.
+  * Set upstream metadata fields: Bug-Submit.
+
+  [ Sandro Tosi ]
+  * debian/control
+    - remove python-sphinx-rtd-theme, no longer needed since attrs/17.1.0
+      https://github.com/python-attrs/attrs/commit/0563f44b477666143fb81e9c3822de1f87b9a8c5 ;
+      Closes: #950449
+
+ -- Sandro Tosi <morph@debian.org>  Sat, 01 Feb 2020 17:46:43 -0500
+
 python-attrs (18.2.0-1pexip2) pexip; urgency=medium
 
   * Rebuild in buster environment

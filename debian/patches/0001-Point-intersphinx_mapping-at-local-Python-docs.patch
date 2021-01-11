@@ -6,18 +6,19 @@ Reviewed-by: Salvo 'LtWorf' Tomaselli <tiposchi@tiscali.it>
 Subject: Point intersphinx_mapping at local Python docs.
 
 
-diff --git a/docs/conf.py b/docs/conf.py
-index 97b2329..9648982 100644
---- a/docs/conf.py
-+++ b/docs/conf.py
-@@ -154,7 +154,9 @@ texinfo_documents = [
-     )
+Index: python-attrs-19.3.0/docs/conf.py
+===================================================================
+--- python-attrs-19.3.0.orig/docs/conf.py
++++ python-attrs-19.3.0/docs/conf.py
+@@ -168,8 +168,9 @@ texinfo_documents = [
  ]
  
--intersphinx_mapping = {"https://docs.python.org/3": None}
-+intersphinx_mapping = {
-+    'python': ('/usr/share/doc/python3-doc/html', '/usr/share/doc/python3-doc/html/objects.inv')
-+}
+ intersphinx_mapping = {
+-    "https://docs.python.org/3": None,
+-    "https://zopeinterface.readthedocs.io/en/latest/": None,
++    'python': ('/usr/share/doc/python3-doc/html', '/usr/share/doc/python3-doc/html/objects.inv'),
++    # Zope Interface package does not build sphinxdoc at the moment
++    'zope.interface': ('/usr/share/doc/python-zope.interface-doc/html', '/usr/share/doc/python-zope.interface-doc/html/objects.inv'),
+ }
  
  # Allow non-local URIs so we can have images in CHANGELOG etc.
- suppress_warnings = ["image.nonlocal_uri"]

@@ -68,7 +68,7 @@ Tests
      assert "foo" == x._a_private_attribute
 
 - To run the test suite, all you need is a recent tox_.
-  It will ensure the test suite runs with all dependencies against all Python versions just as it will on Travis CI.
+  It will ensure the test suite runs with all dependencies against all Python versions just as it will in our CI.
   If you lack some Python versions, you can can always limit the environments like ``tox -e py27,py35`` (in that case you may want to look into pyenv_, which makes it very easy to install many different Python versions in parallel).
 - Write `good test docstrings`_.
 - To ensure new features work well with the rest of the system, they should be also added to our `Hypothesis`_ testing strategy, which is found in ``tests/strategies.py``.
@@ -117,8 +117,8 @@ You don't need to install ``towncrier`` yourself, you just have to abide by a fe
 - For each pull request, add a new file into ``changelog.d`` with a filename adhering to the ``pr#.(change|deprecation|breaking).rst`` schema:
   For example, ``changelog.d/42.change.rst`` for a non-breaking change that is proposed in pull request #42.
 - As with other docs, please use `semantic newlines`_ within news fragments.
-- Wrap symbols like modules, functions, or classes into double backticks so they are rendered in a monospace font.
-- Wrap arguments into asterisks like in autodocs: *these* or *attributes*.
+- Wrap symbols like modules, functions, or classes into double backticks so they are rendered in a ``monospace font``.
+- Wrap arguments into asterisks like in docstrings: *these* or *attributes*.
 - If you mention functions or other callables, add parentheses at the end of their names: ``attr.func()`` or ``attr.Class.method()``.
   This makes the changelog a lot more readable.
 - Prefer simple past tense or constructions with "now".
@@ -192,7 +192,7 @@ should work and pass, as should:
 
 The built documentation can then be found in ``docs/_build/html/``.
 
-To avoid committing code that violates our style guide, we strongly advice you to install pre-commit_ [#f1]_ hooks:
+To avoid committing code that violates our style guide, we strongly advise you to install pre-commit_ [#f1]_ hooks:
 
 .. code-block:: bash
 
@@ -237,14 +237,14 @@ Thank you for considering contributing to ``attrs``!
 .. _`backward compatibility`: https://www.attrs.org/en/latest/backward-compatibility.html
 .. _tox: https://tox.readthedocs.io/
 .. _pyenv: https://github.com/pyenv/pyenv
-.. _reStructuredText: http://www.sphinx-doc.org/en/stable/rest.html
-.. _semantic newlines: http://rhodesmill.org/brandon/2012/one-sentence-per-line/
+.. _reStructuredText: https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html
+.. _semantic newlines: https://rhodesmill.org/brandon/2012/one-sentence-per-line/
 .. _examples page: https://github.com/python-attrs/attrs/blob/master/docs/examples.rst
 .. _Hypothesis: https://hypothesis.readthedocs.io/
-.. _CI: https://travis-ci.org/python-attrs/attrs/
+.. _CI: https://attrs.visualstudio.com/attrs/_build/latest?definitionId=1&branchName=master
 .. _`team of volunteers`: https://github.com/python-attrs
 .. _BDFL: https://en.wikipedia.org/wiki/Benevolent_dictator_for_life
 .. _towncrier: https://pypi.org/project/towncrier
-.. _black: https://github.com/ambv/black
+.. _black: https://github.com/psf/black
 .. _pre-commit: https://pre-commit.com/
 .. _isort: https://github.com/timothycrosley/isort
