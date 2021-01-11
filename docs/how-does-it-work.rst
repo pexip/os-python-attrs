@@ -39,7 +39,7 @@ No magic, no meta programming, no expensive introspection at runtime.
 
 Everything until this point happens exactly *once* when the class is defined.
 As soon as a class is done, it's done.
-And it's just a regular Python class like any other, except for a single ``__attrs_attrs__`` attribute that can be used for introspection or for writing your own tools and decorators on top of ``attrs`` (like :func:`attr.asdict`).
+And it's just a regular Python class like any other, except for a single ``__attrs_attrs__`` attribute that can be used for introspection or for writing your own tools and decorators on top of ``attrs`` (like `attr.asdict`).
 
 And once you start instantiating your classes, ``attrs`` is out of your way completely.
 
@@ -51,9 +51,9 @@ This **static** approach was very much a design goal of ``attrs`` and what I str
 Immutability
 ------------
 
-In order to give you immutability, ``attrs`` will attach a ``__setattr__`` method to your class that raises a :exc:`attr.exceptions.FrozenInstanceError` whenever anyone tries to set an attribute.
+In order to give you immutability, ``attrs`` will attach a ``__setattr__`` method to your class that raises a `attr.exceptions.FrozenInstanceError` whenever anyone tries to set an attribute.
 
-Depending on whether a class is a dict class or a slots class, ``attrs`` uses a different technique to circumvent that limitation in the ``__init__`` method.
+Depending on whether a class is a dict class or a slotted class, ``attrs`` uses a different technique to circumvent that limitation in the ``__init__`` method.
 
 Once constructed, frozen instances don't differ in any way from regular ones except that you cannot change its attributes.
 
@@ -66,10 +66,10 @@ Dict classes -- i.e. regular classes -- simply assign the value directly into th
 The performance impact is negligible.
 
 
-Slots Classes
-+++++++++++++
+Slotted Classes
++++++++++++++++
 
-Slots classes are more complicated.
+Slotted classes are more complicated.
 Here it uses (an aggressively cached) :meth:`object.__setattr__` to set your attributes.
 This is (still) slower than a plain assignment:
 
@@ -95,6 +95,6 @@ Pick what's more important to you.
 Summary
 +++++++
 
-You should avoid to instantiate lots of frozen slotted classes (i.e. ``@attr.s(slots=True, frozen=True)``) in performance-critical code.
+You should avoid instantiating lots of frozen slotted classes (i.e. ``@attr.s(slots=True, frozen=True)``) in performance-critical code.
 
 Frozen dict classes have barely a performance impact, unfrozen slotted classes are even *faster* than unfrozen dict classes (i.e. regular classes).
