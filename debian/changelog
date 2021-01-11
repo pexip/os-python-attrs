@@ -1,3 +1,9 @@
+python-attrs (19.3.0-3~bpo10+1pexip1) pexip; urgency=medium
+
+  * Bump version
+
+ -- Huw Jones <huw@pexip.com>  Mon, 11 Jan 2021 18:03:44 +0200
+
 python-attrs (19.3.0-3~bpo10+1) buster-backports; urgency=medium
 
   * Rebuild for buster-backports.
