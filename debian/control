@@ -29,7 +29,7 @@ Standards-Version: 4.5.0
 Homepage: https://attrs.readthedocs.org/
 Vcs-Git: https://salsa.debian.org/python-team/modules/python-attrs.git
 Vcs-Browser: https://salsa.debian.org/python-team/modules/python-attrs
-XS-Pexip-Upstream: http://ftp.debian.org/debian/ buster-backports
+XS-Pexip-Upstream: http://deb.debian.org/debian/ bullseye
 
 Package: python-attr
 Architecture: all
