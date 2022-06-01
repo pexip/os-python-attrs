@@ -31,6 +31,10 @@ def find_version(*file_paths):
 
 # -- General configuration ------------------------------------------------
 
+linkcheck_ignore = [
+    r"https://github.com/.*/(issues|pull)/\d+",
+]
+
 # In nitpick mode (-n), still ignore any of the following "broken" references
 # to non-types.
 nitpick_ignore = [
@@ -92,13 +96,9 @@ pygments_style = "sphinx"
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 
-html_theme = "alabaster"
+html_theme = "furo"
 html_theme_options = {
-    "font_family": '"Avenir Next", Calibri, "PT Sans", sans-serif',
-    "head_font_family": '"Avenir Next", Calibri, "PT Sans", sans-serif',
-    "font_size": "18px",
-    "page_width": "980px",
-    "show_relbars": True,
+    "sidebar_hide_name": True,
 }
 
 # The name of an image file (relative to this directory) to place at the top
@@ -169,7 +169,6 @@ texinfo_documents = [
 
 intersphinx_mapping = {
     "https://docs.python.org/3": None,
-    "https://zopeinterface.readthedocs.io/en/latest/": None,
 }
 
 # Allow non-local URIs so we can have images in CHANGELOG etc.

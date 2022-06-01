@@ -1,0 +1,21 @@
+From: Tristan Seligmann <mithrandi@mithrandi.net>
+Date: Tue, 10 Nov 2020 11:05:02 +0200
+Subject: Revert theme.
+
+---
+ docs/conf.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/docs/conf.py b/docs/conf.py
+index d4855dd..9473fb1 100644
+--- a/docs/conf.py
++++ b/docs/conf.py
+@@ -96,7 +96,7 @@ pygments_style = "sphinx"
+ # The theme to use for HTML and HTML Help pages.  See the documentation for
+ # a list of builtin themes.
+ 
+-html_theme = "furo"
++html_theme = "sphinx_rtd_theme"
+ html_theme_options = {
+     "sidebar_hide_name": True,
+ }

@@ -46,14 +46,8 @@ def maybe_underscore_prefix(source):
         to_underscore = not to_underscore
 
 
-def _create_hyp_class(attrs):
-    """
-    A helper function for Hypothesis to generate attrs classes.
-    """
-    return make_class("HypClass", dict(zip(gen_attr_names(), attrs)))
-
-
-def _create_hyp_nested_strategy(simple_class_strategy):
+@st.composite
+def _create_hyp_nested_strategy(draw, simple_class_strategy):
     """
     Create a recursive attrs class.
 
@@ -62,47 +56,17 @@ def _create_hyp_nested_strategy(simple_class_strategy):
     the simpler class, a list of simpler classes, a tuple of simpler classes,
     an ordered dict or a dict mapping the string "cls" to a simpler class.
     """
-    # Use a tuple strategy to combine simple attributes and an attr class.
-    def just_class(tup):
-        combined_attrs = list(tup[0])
-        combined_attrs.append(attr.ib(default=attr.Factory(tup[1])))
-        return _create_hyp_class(combined_attrs)
-
-    def list_of_class(tup):
-        default = attr.Factory(lambda: [tup[1]()])
-        combined_attrs = list(tup[0])
-        combined_attrs.append(attr.ib(default=default))
-        return _create_hyp_class(combined_attrs)
-
-    def tuple_of_class(tup):
-        default = attr.Factory(lambda: (tup[1](),))
-        combined_attrs = list(tup[0])
-        combined_attrs.append(attr.ib(default=default))
-        return _create_hyp_class(combined_attrs)
-
-    def dict_of_class(tup):
-        default = attr.Factory(lambda: {"cls": tup[1]()})
-        combined_attrs = list(tup[0])
-        combined_attrs.append(attr.ib(default=default))
-        return _create_hyp_class(combined_attrs)
-
-    def ordereddict_of_class(tup):
-        default = attr.Factory(lambda: OrderedDict([("cls", tup[1]())]))
-        combined_attrs = list(tup[0])
-        combined_attrs.append(attr.ib(default=default))
-        return _create_hyp_class(combined_attrs)
-
-    # A strategy producing tuples of the form ([list of attributes], <given
-    # class strategy>).
-    attrs_and_classes = st.tuples(list_of_attrs, simple_class_strategy)
-
-    return st.one_of(
-        attrs_and_classes.map(just_class),
-        attrs_and_classes.map(list_of_class),
-        attrs_and_classes.map(tuple_of_class),
-        attrs_and_classes.map(dict_of_class),
-        attrs_and_classes.map(ordereddict_of_class),
-    )
+    cls = draw(simple_class_strategy)
+    factories = [
+        cls,
+        lambda: [cls()],
+        lambda: (cls(),),
+        lambda: {"cls": cls()},
+        lambda: OrderedDict([("cls", cls())]),
+    ]
+    factory = draw(st.sampled_from(factories))
+    attrs = draw(list_of_attrs) + [attr.ib(default=attr.Factory(factory))]
+    return make_class("HypClass", dict(zip(gen_attr_names(), attrs)))
 
 
 bare_attrs = st.builds(attr.ib, default=st.none())
@@ -127,7 +91,7 @@ def simple_attrs_with_metadata(draw):
     keys = st.booleans() | st.binary() | st.integers() | st.text()
     vals = st.booleans() | st.binary() | st.integers() | st.text()
     metadata = draw(
-        st.dictionaries(keys=keys, values=vals, min_size=1, max_size=5)
+        st.dictionaries(keys=keys, values=vals, min_size=1, max_size=3)
     )
 
     return attr.ib(
@@ -147,7 +111,7 @@ def simple_attrs_with_metadata(draw):
 simple_attrs = simple_attrs_without_metadata | simple_attrs_with_metadata()
 
 # Python functions support up to 255 arguments.
-list_of_attrs = st.lists(simple_attrs, max_size=9)
+list_of_attrs = st.lists(simple_attrs, max_size=3)
 
 
 @st.composite
@@ -177,11 +141,9 @@ def simple_classes(
     private, and if `private_attrs=False`, no attributes will be private.
     """
     attrs = draw(list_of_attrs)
-    frozen_flag = draw(st.booleans()) if frozen is None else frozen
-    slots_flag = draw(st.booleans()) if slots is None else slots
-    weakref_slot_flag = (
-        draw(st.booleans()) if weakref_slot is None else weakref_slot
-    )
+    frozen_flag = draw(st.booleans())
+    slots_flag = draw(st.booleans())
+    weakref_flag = draw(st.booleans())
 
     if private_attrs is None:
         attr_names = maybe_underscore_prefix(gen_attr_names())
@@ -202,9 +164,9 @@ def simple_classes(
     return make_class(
         "HypClass",
         cls_dict,
-        slots=slots_flag,
-        frozen=frozen_flag,
-        weakref_slot=weakref_slot_flag,
+        slots=slots_flag if slots is None else slots,
+        frozen=frozen_flag if frozen is None else frozen,
+        weakref_slot=weakref_flag if weakref_slot is None else weakref_slot,
     )
 
 
@@ -212,5 +174,5 @@ def simple_classes(
 # and a special function.  This function receives a strategy, and returns
 # another strategy (building on top of the base strategy).
 nested_classes = st.recursive(
-    simple_classes(), _create_hyp_nested_strategy, max_leaves=10
+    simple_classes(), _create_hyp_nested_strategy, max_leaves=3
 )

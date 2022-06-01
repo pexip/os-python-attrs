@@ -2,6 +2,7 @@
 Unit tests for slots-related functionality.
 """
 
+import pickle
 import sys
 import types
 import weakref
@@ -543,3 +544,84 @@ def tests_weakref_does_not_add_with_weakref_attribute():
     w = weakref.ref(c)
 
     assert c is w()
+
+
+def test_slots_empty_cell():
+    """
+    Tests that no `ValueError: Cell is empty` exception is raised when
+    closure cells are present with no contents in a `slots=True` class.
+    (issue https://github.com/python-attrs/attrs/issues/589)
+
+    On Python 3, if a method mentions `__class__` or uses the no-arg `super()`,
+    the compiler will bake a reference to the class in the method itself as
+    `method.__closure__`. Since `attrs` replaces the class with a clone,
+    `_ClassBuilder._create_slots_class(self)` will rewrite these references so
+    it keeps working. This method was not properly covering the edge case where
+    the closure cell was empty, we fixed it and this is the non-regression
+    test.
+    """
+
+    @attr.s(slots=True)
+    class C(object):
+        field = attr.ib()
+
+        def f(self, a):
+            super(C, self).__init__()
+
+    C(field=1)
+
+
+@attr.s(getstate_setstate=True)
+class C2(object):
+    x = attr.ib()
+
+
+@attr.s(slots=True, getstate_setstate=True)
+class C2Slots(object):
+    x = attr.ib()
+
+
+class TestPickle(object):
+    @pytest.mark.parametrize("protocol", range(pickle.HIGHEST_PROTOCOL))
+    def test_pickleable_by_default(self, protocol):
+        """
+        If nothing else is passed, slotted classes can be pickled and
+        unpickled with all supported protocols.
+        """
+        i1 = C1Slots(1, 2)
+        i2 = pickle.loads(pickle.dumps(i1, protocol))
+
+        assert i1 == i2
+        assert i1 is not i2
+
+    def test_no_getstate_setstate_for_dict_classes(self):
+        """
+        As long as getstate_setstate is None, nothing is done to dict
+        classes.
+        """
+        i = C1(1, 2)
+
+        assert None is getattr(i, "__getstate__", None)
+        assert None is getattr(i, "__setstate__", None)
+
+    def test_no_getstate_setstate_if_option_false(self):
+        """
+        Don't add getstate/setstate if getstate_setstate is False.
+        """
+
+        @attr.s(slots=True, getstate_setstate=False)
+        class C(object):
+            x = attr.ib()
+
+        i = C(42)
+
+        assert None is getattr(i, "__getstate__", None)
+        assert None is getattr(i, "__setstate__", None)
+
+    @pytest.mark.parametrize("cls", [C2(1), C2Slots(1)])
+    def test_getstate_set_state_force_true(self, cls):
+        """
+        If getstate_setstate is True, add them unconditionally.
+        """
+        assert None is not getattr(cls, "__getstate__", None)
+        assert None is not getattr(cls, "__setstate__", None)

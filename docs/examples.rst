@@ -146,7 +146,7 @@ On Python 3 it overrides the implicit detection.
 Keyword-only Attributes
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-When using ``attrs`` on Python 3, you can also add `keyword-only <https://docs.python.org/3/glossary.html#keyword-only-parameter>`_ attributes:
+You can also add `keyword-only <https://docs.python.org/3/glossary.html#keyword-only-parameter>`_ attributes:
 
 .. doctest::
 
@@ -417,7 +417,7 @@ You can use a decorator:
    >>> C("128")
    Traceback (most recent call last):
       ...
-   TypeError: ("'x' must be <class 'int'> (got '128' that is a <class 'str'>).", Attribute(name='x', default=NOTHING, validator=[<instance_of validator for type <class 'int'>>, <function fits_byte at 0x10fd7a0d0>], repr=True, cmp=True, hash=True, init=True, metadata=mappingproxy({}), type=None, converter=one, kw_only=False), <class 'int'>, '128')
+   TypeError: ("'x' must be <class 'int'> (got '128' that is a <class 'str'>).", Attribute(name='x', default=NOTHING, validator=[<instance_of validator for type <class 'int'>>, <function fits_byte at 0x10fd7a0d0>], repr=True, cmp=True, hash=True, init=True, metadata=mappingproxy({}), type=None, converter=None, kw_only=False), <class 'int'>, '128')
    >>> C(256)
    Traceback (most recent call last):
       ...
@@ -530,6 +530,33 @@ If you don't mind annotating *all* attributes, you can even drop the `attr.ib` a
 
 The generated ``__init__`` method will have an attribute called ``__annotations__`` that contains this type information.
 
+If your annotations contain strings (e.g. forward references),
+you can resolve these after all references have been defined by using :func:`attr.resolve_types`.
+This will replace the *type* attribute in the respective fields.
+
+.. doctest::
+
+    >>> import typing
+    >>> @attr.s(auto_attribs=True)
+    ... class A:
+    ...     a: typing.List['A']
+    ...     b: 'B'
+    ...
+    >>> @attr.s(auto_attribs=True)
+    ... class B:
+    ...     a: A
+    ...
+    >>> attr.fields(A).a.type
+    typing.List[ForwardRef('A')]
+    >>> attr.fields(A).b.type
+    'B'
+    >>> attr.resolve_types(A, globals(), locals())
+    <class 'A'>
+    >>> attr.fields(A).a.type
+    typing.List[A]
+    >>> attr.fields(A).b.type
+    <class 'B'>
+
 .. warning::
 
    ``attrs`` itself doesn't have any features that work on top of type metadata *yet*.
@@ -539,7 +566,7 @@ The generated ``__init__`` method will have an attribute called ``__annotations_
 Slots
 -----
 
-:term:`Slotted classes` have a bunch of advantages on CPython.
+:term:`Slotted classes <slotted classes>` have several advantages on CPython.
 Defining ``__slots__`` by hand is tedious, in ``attrs`` it's just a matter of passing ``slots=True``:
 
 .. doctest::
