@@ -1,3 +1,9 @@
+python-attrs (20.3.0-1pexip1) pexip; urgency=medium
+
+  * Initial bullseye build
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Thu, 02 Jun 2022 14:42:44 +0100
+
 python-attrs (20.3.0-1) unstable; urgency=medium
 
   * New upstream release.
