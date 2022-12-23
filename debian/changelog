@@ -1,3 +1,43 @@
+python-attrs (22.2.0-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream version 22.2.0
+  * Bump Standards-Version to 4.6.2
+  * Use autopkgtest-pkg-pybuild
+  * Use pybuild.testfiles instead of manual copying
+
+ -- Timo Röhling <roehling@debian.org>  Fri, 23 Dec 2022 21:56:38 +0100
+
+python-attrs (22.1.0-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release.
+  * debian/patches:
+    - refresh all patches.
+  * Update d/copyright.
+  * debian/control:
+    - drop dependency on python3-six
+    - add build dependency on pybuild-plugin-pyproject.
+  * Standards-Version bumped to 4.6.1 (no change).
+  * Minor improvements to d/copyright formatting.
+
+ -- Antonio Valentino <antonio.valentino@tiscali.it>  Tue, 09 Aug 2022 18:31:28 +0000
+
+python-attrs (21.2.0-1) unstable; urgency=medium
+
+  [ Steffen Möller ]
+  * d/u/metadata - added refs to conda+guix
+
+  [ Jochen Sprickerhof ]
+  * New upstream version 21.2.0 (Closes: #1001373)
+  * Rebase patches
+  * Bump policy versions (no changes)
+  * Use dh-sequence
+  * Drop gitlab-ci
+  * Add patch for sphinx notfound.extension
+
+ -- Jochen Sprickerhof <jspricke@debian.org>  Mon, 20 Dec 2021 19:22:37 +0100
+
 python-attrs (20.3.0-1) unstable; urgency=medium
 
   * New upstream release.

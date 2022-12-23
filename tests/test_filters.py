@@ -1,8 +1,9 @@
+# SPDX-License-Identifier: MIT
+
 """
 Tests for `attr.filters`.
 """
 
-from __future__ import absolute_import, division, print_function
 
 import pytest
 
@@ -13,12 +14,12 @@ from attr.filters import _split_what, exclude, include
 
 
 @attr.s
-class C(object):
+class C:
     a = attr.ib()
     b = attr.ib()
 
 
-class TestSplitWhat(object):
+class TestSplitWhat:
     """
     Tests for `_split_what`.
     """
@@ -33,7 +34,7 @@ class TestSplitWhat(object):
         ) == _split_what((str, fields(C).a, int))
 
 
-class TestInclude(object):
+class TestInclude:
     """
     Tests for `include`.
     """
@@ -49,7 +50,7 @@ class TestInclude(object):
     )
     def test_allow(self, incl, value):
         """
-        Return True if a class or attribute is whitelisted.
+        Return True if a class or attribute is included.
         """
         i = include(*incl)
         assert i(fields(C).a, value) is True
@@ -65,13 +66,13 @@ class TestInclude(object):
     )
     def test_drop_class(self, incl, value):
         """
-        Return False on non-whitelisted classes and attributes.
+        Return False on non-included classes and attributes.
         """
         i = include(*incl)
         assert i(fields(C).a, value) is False
 
 
-class TestExclude(object):
+class TestExclude:
     """
     Tests for `exclude`.
     """
@@ -87,7 +88,7 @@ class TestExclude(object):
     )
     def test_allow(self, excl, value):
         """
-        Return True if class or attribute is not blacklisted.
+        Return True if class or attribute is not excluded.
         """
         e = exclude(*excl)
         assert e(fields(C).a, value) is True
@@ -103,7 +104,7 @@ class TestExclude(object):
     )
     def test_drop_class(self, excl, value):
         """
-        Return True on non-blacklisted classes and attributes.
+        Return True on non-excluded classes and attributes.
         """
         e = exclude(*excl)
         assert e(fields(C).a, value) is False

@@ -1,21 +1,21 @@
-From: Tristan Seligmann <mithrandi@mithrandi.net>
-Date: Fri, 30 Jun 2017 03:58:13 +0200
-Subject: Link to local copy of logo.
+From: =?utf-8?q?Timo_R=C3=B6hling?= <roehling@debian.org>
+Date: Fri, 23 Dec 2022 22:13:44 +0100
+Subject: Link to local copy of logo
 
 ---
- CHANGELOG.rst | 2 +-
+ CHANGELOG.md | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/CHANGELOG.rst b/CHANGELOG.rst
-index 11dd81a..30753da 100644
---- a/CHANGELOG.rst
-+++ b/CHANGELOG.rst
-@@ -588,7 +588,7 @@ To encourage more participation, the project has also been moved into a `dedicat
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index e3d1feb..cb0934e 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -853,7 +853,7 @@ To encourage more participation, the project has also been moved into a [dedicat
  
- ``attrs`` also has a logo now!
+ `attrs` also has a logo now!
  
--.. image:: https://www.attrs.org/en/latest/_static/attrs_logo.png
-+.. image:: _static/attrs_logo.png
-    :alt: attrs logo
- 
+-```{image} https://www.attrs.org/en/latest/_static/attrs_logo.png
++```{image} _static/attrs_logo.png
+ :alt: attrs logo
+ ```
  

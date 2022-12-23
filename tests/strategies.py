@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 """
 Testing strategies for Hypothesis-based tests.
 """
@@ -26,8 +28,7 @@ def gen_attr_names():
     Some short strings (such as 'as') are keywords, so we skip them.
     """
     lc = string.ascii_lowercase
-    for c in lc:
-        yield c
+    yield from lc
     for outer in lc:
         for inner in lc:
             res = outer + inner
@@ -153,7 +154,17 @@ def simple_classes(
         attr_names = gen_attr_names()
 
     cls_dict = dict(zip(attr_names, attrs))
+    pre_init_flag = draw(st.booleans())
     post_init_flag = draw(st.booleans())
+    init_flag = draw(st.booleans())
+
+    if pre_init_flag:
+
+        def pre_init(self):
+            pass
+
+        cls_dict["__attrs_pre_init__"] = pre_init
+
     if post_init_flag:
 
         def post_init(self):
@@ -161,12 +172,20 @@ def simple_classes(
 
         cls_dict["__attrs_post_init__"] = post_init
 
+    if not init_flag:
+
+        def init(self, *args, **kwargs):
+            self.__attrs_init__(*args, **kwargs)
+
+        cls_dict["__init__"] = init
+
     return make_class(
         "HypClass",
         cls_dict,
         slots=slots_flag if slots is None else slots,
         frozen=frozen_flag if frozen is None else frozen,
         weakref_slot=weakref_flag if weakref_slot is None else weakref_slot,
+        init=init_flag,
     )
 
 

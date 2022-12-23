@@ -1,19 +1,11 @@
 #! /usr/bin/make -f
 
 export PYBUILD_NAME=attr
-export PYBUILD_BEFORE_TEST=cp conftest.py {build_dir}
-export PYBUILD_AFTER_TEST=rm -r {build_dir}/.hypothesis {build_dir}/conftest.py
 
 %:
-	dh $@ --with python3,sphinxdoc --buildsystem=pybuild
+	dh $@ --buildsystem=pybuild
 
-override_dh_auto_clean:
-	dh_auto_clean
-	rm -rf .pytest_cache
-	rm -rf src/attrs.egg-info
-
-override_dh_auto_build:
-	dh_auto_build
+execute_after_dh_auto_build:
 	PYTHONPATH=$(shell pybuild --print build_dir --interpreter python3) \
 	   http_proxy='127.0.0.1:9' \
 	   https_proxy='127.0.0.1:9' \
