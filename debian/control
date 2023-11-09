@@ -21,7 +21,7 @@ Standards-Version: 4.5.0
 Homepage: https://attrs.readthedocs.org/
 Vcs-Git: https://salsa.debian.org/python-team/packages/python-attrs.git
 Vcs-Browser: https://salsa.debian.org/python-team/packages/python-attrs
-XS-Pexip-Upstream: http://deb.debian.org/debian/ bullseye
+XS-Pexip-Upstream: http://deb.debian.org/debian/ bookworm
 
 Package: python3-attr
 Architecture: all
