@@ -1,38 +1,28 @@
-# -*- coding: utf-8 -*-
+# SPDX-License-Identifier: MIT
 
-import codecs
-import os
-import re
-
-
-def read(*parts):
-    """
-    Build an absolute path from *parts* and and return the contents of the
-    resulting file.  Assume UTF-8 encoding.
-    """
-    here = os.path.abspath(os.path.dirname(__file__))
-    with codecs.open(os.path.join(here, *parts), "rb", "utf-8") as f:
-        return f.read()
+from importlib import metadata
+from pathlib import Path
 
 
-def find_version(*file_paths):
-    """
-    Build a path from *file_paths* and search for a ``__version__``
-    string inside.
-    """
-    version_file = read(*file_paths)
-    version_match = re.search(
-        r"^__version__ = ['\"]([^'\"]*)['\"]", version_file, re.M
-    )
-    if version_match:
-        return version_match.group(1)
-    raise RuntimeError("Unable to find version string.")
+# -- Path setup -----------------------------------------------------------
+
+PROJECT_ROOT_DIR = Path(__file__).parents[1].resolve()
 
 
 # -- General configuration ------------------------------------------------
 
+doctest_global_setup = """
+from attr import define, frozen, field, validators, Factory
+"""
+
 linkcheck_ignore = [
+    # We run into GitHub's rate limits.
     r"https://github.com/.*/(issues|pull)/\d+",
+    # Rate limits and the latest tag is missing anyways on release.
+    "https://github.com/python-attrs/attrs/tree/.*",
+    # It never finds the anchor even though it's there.
+    "https://github.com/microsoft/pyright/blob/main/specs/"
+    "dataclass_transforms.md#attrs",
 ]
 
 # In nitpick mode (-n), still ignore any of the following "broken" references
@@ -48,12 +38,20 @@ nitpick_ignore = [
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    "myst_parser",
     "sphinx.ext.autodoc",
     "sphinx.ext.doctest",
     "sphinx.ext.intersphinx",
     "sphinx.ext.todo",
+    "notfound.extension",
+    "sphinxcontrib.towncrier",
 ]
 
+myst_enable_extensions = [
+    "colon_fence",
+    "smartquotes",
+    "deflist",
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -65,17 +63,18 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = u"attrs"
-copyright = u"2015, Hynek Schlawack"
+project = "attrs"
+author = "Hynek Schlawack"
+copyright = f"2015, {author}"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
-#
-# The short X.Y version.
-release = find_version("../src/attr/__init__.py")
-version = release.rsplit(u".", 1)[0]
+
 # The full version, including alpha/beta/rc tags.
+release = metadata.version("attrs")
+# The short X.Y version.
+version = release.rsplit(".", 1)[0]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -88,9 +87,6 @@ default_role = "any"
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = True
 
-# The name of the Pygments (syntax highlighting) style to use.
-pygments_style = "sphinx"
-
 # -- Options for HTML output ----------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -99,11 +95,10 @@ pygments_style = "sphinx"
 html_theme = "furo"
 html_theme_options = {
     "sidebar_hide_name": True,
+    "light_logo": "attrs_logo.svg",
+    "dark_logo": "attrs_logo_white.svg",
 }
 
-# The name of an image file (relative to this directory) to place at the top
-# of the sidebar.
-html_logo = "_static/attrs_logo.svg"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -145,9 +140,7 @@ htmlhelp_basename = "attrsdoc"
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    ("index", "attrs", u"attrs Documentation", [u"Hynek Schlawack"], 1)
-]
+man_pages = [("index", "attrs", "attrs Documentation", ["Hynek Schlawack"], 1)]
 
 
 # -- Options for Texinfo output -------------------------------------------
@@ -159,13 +152,15 @@ texinfo_documents = [
     (
         "index",
         "attrs",
-        u"attrs Documentation",
-        u"Hynek Schlawack",
+        "attrs Documentation",
+        "Hynek Schlawack",
         "attrs",
-        "One line description of project.",
+        "Python Clases Without Boilerplate",
         "Miscellaneous",
     )
 ]
+
+epub_description = "Python Clases Without Boilerplate"
 
 intersphinx_mapping = {
     "https://docs.python.org/3": None,
@@ -173,3 +168,11 @@ intersphinx_mapping = {
 
 # Allow non-local URIs so we can have images in CHANGELOG etc.
 suppress_warnings = ["image.nonlocal_uri"]
+
+
+# -- Options for sphinxcontrib.towncrier extension ------------------------
+
+towncrier_draft_autoversion_mode = "draft"
+towncrier_draft_include_empty = True
+towncrier_draft_working_directory = PROJECT_ROOT_DIR
+towncrier_draft_config_path = "pyproject.toml"

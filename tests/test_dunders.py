@@ -1,8 +1,9 @@
+# SPDX-License-Identifier: MIT
+
 """
 Tests for dunder methods from `attrib._make`.
 """
 
-from __future__ import absolute_import, division, print_function
 
 import copy
 import pickle
@@ -20,7 +21,6 @@ from attr._make import (
     _add_repr,
     _is_slot_cls,
     _make_init,
-    _Nothing,
     fields,
     make_class,
 )
@@ -35,6 +35,31 @@ OrderC = simple_class(order=True)
 OrderCSlots = simple_class(order=True, slots=True)
 ReprC = simple_class(repr=True)
 ReprCSlots = simple_class(repr=True, slots=True)
+
+
+@attr.s(eq=True)
+class EqCallableC:
+    a = attr.ib(eq=str.lower, order=False)
+    b = attr.ib(eq=True)
+
+
+@attr.s(eq=True, slots=True)
+class EqCallableCSlots:
+    a = attr.ib(eq=str.lower, order=False)
+    b = attr.ib(eq=True)
+
+
+@attr.s(order=True)
+class OrderCallableC:
+    a = attr.ib(eq=True, order=str.lower)
+    b = attr.ib(order=True)
+
+
+@attr.s(order=True, slots=True)
+class OrderCallableCSlots:
+    a = attr.ib(eq=True, order=str.lower)
+    b = attr.ib(order=True)
+
 
 # HashC is hashable by explicit definition while HashCSlots is hashable
 # implicitly.  The "Cached" versions are the same, except with hash code
@@ -62,25 +87,27 @@ def _add_init(cls, frozen):
     cls.__init__ = _make_init(
         cls,
         cls.__attrs_attrs__,
+        getattr(cls, "__attrs_pre_init__", False),
         getattr(cls, "__attrs_post_init__", False),
         frozen,
         _is_slot_cls(cls),
         cache_hash=False,
         base_attr_map={},
         is_exc=False,
-        has_global_on_setattr=False,
+        cls_on_setattr=None,
+        attrs_init=False,
     )
     return cls
 
 
-class InitC(object):
+class InitC:
     __attrs_attrs__ = [simple_attr("a"), simple_attr("b")]
 
 
 InitC = _add_init(InitC, False)
 
 
-class TestEqOrder(object):
+class TestEqOrder:
     """
     Tests for eq and order related methods.
     """
@@ -104,6 +131,16 @@ class TestEqOrder(object):
         assert cls(1, 2) == cls(1, 2)
         assert not (cls(1, 2) != cls(1, 2))
 
+    @pytest.mark.parametrize("cls", [EqCallableC, EqCallableCSlots])
+    def test_equal_callable(self, cls):
+        """
+        Equal objects are detected as equal.
+        """
+        assert cls("Test", 1) == cls("test", 1)
+        assert cls("Test", 1) != cls("test", 2)
+        assert not (cls("Test", 1) != cls("test", 1))
+        assert not (cls("Test", 1) == cls("test", 2))
+
     @pytest.mark.parametrize("cls", [EqC, EqCSlots])
     def test_unequal_same_class(self, cls):
         """
@@ -112,14 +149,24 @@ class TestEqOrder(object):
         assert cls(1, 2) != cls(2, 1)
         assert not (cls(1, 2) == cls(2, 1))
 
-    @pytest.mark.parametrize("cls", [EqC, EqCSlots])
+    @pytest.mark.parametrize("cls", [EqCallableC, EqCallableCSlots])
+    def test_unequal_same_class_callable(self, cls):
+        """
+        Unequal objects of correct type are detected as unequal.
+        """
+        assert cls("Test", 1) != cls("foo", 2)
+        assert not (cls("Test", 1) == cls("foo", 2))
+
+    @pytest.mark.parametrize(
+        "cls", [EqC, EqCSlots, EqCallableC, EqCallableCSlots]
+    )
     def test_unequal_different_class(self, cls):
         """
         Unequal objects of different type are detected even if their attributes
         match.
         """
 
-        class NotEqC(object):
+        class NotEqC:
             a = 1
             b = 2
 
@@ -138,7 +185,21 @@ class TestEqOrder(object):
         ]:
             assert cls(*a) < cls(*b)
 
-    @pytest.mark.parametrize("cls", [OrderC, OrderCSlots])
+    @pytest.mark.parametrize("cls", [OrderCallableC, OrderCallableCSlots])
+    def test_lt_callable(self, cls):
+        """
+        __lt__ compares objects as tuples of attribute values.
+        """
+        # Note: "A" < "a"
+        for a, b in [
+            (("test1", 1), ("Test1", 2)),
+            (("test0", 1), ("Test1", 1)),
+        ]:
+            assert cls(*a) < cls(*b)
+
+    @pytest.mark.parametrize(
+        "cls", [OrderC, OrderCSlots, OrderCallableC, OrderCallableCSlots]
+    )
     def test_lt_unordable(self, cls):
         """
         __lt__ returns NotImplemented if classes differ.
@@ -159,7 +220,23 @@ class TestEqOrder(object):
         ]:
             assert cls(*a) <= cls(*b)
 
-    @pytest.mark.parametrize("cls", [OrderC, OrderCSlots])
+    @pytest.mark.parametrize("cls", [OrderCallableC, OrderCallableCSlots])
+    def test_le_callable(self, cls):
+        """
+        __le__ compares objects as tuples of attribute values.
+        """
+        # Note: "A" < "a"
+        for a, b in [
+            (("test1", 1), ("Test1", 1)),
+            (("test1", 1), ("Test1", 2)),
+            (("test0", 1), ("Test1", 1)),
+            (("test0", 2), ("Test1", 1)),
+        ]:
+            assert cls(*a) <= cls(*b)
+
+    @pytest.mark.parametrize(
+        "cls", [OrderC, OrderCSlots, OrderCallableC, OrderCallableCSlots]
+    )
     def test_le_unordable(self, cls):
         """
         __le__ returns NotImplemented if classes differ.
@@ -178,7 +255,21 @@ class TestEqOrder(object):
         ]:
             assert cls(*a) > cls(*b)
 
-    @pytest.mark.parametrize("cls", [OrderC, OrderCSlots])
+    @pytest.mark.parametrize("cls", [OrderCallableC, OrderCallableCSlots])
+    def test_gt_callable(self, cls):
+        """
+        __gt__ compares objects as tuples of attribute values.
+        """
+        # Note: "A" < "a"
+        for a, b in [
+            (("Test1", 2), ("test1", 1)),
+            (("Test1", 1), ("test0", 1)),
+        ]:
+            assert cls(*a) > cls(*b)
+
+    @pytest.mark.parametrize(
+        "cls", [OrderC, OrderCSlots, OrderCallableC, OrderCallableCSlots]
+    )
     def test_gt_unordable(self, cls):
         """
         __gt__ returns NotImplemented if classes differ.
@@ -199,7 +290,23 @@ class TestEqOrder(object):
         ]:
             assert cls(*a) >= cls(*b)
 
-    @pytest.mark.parametrize("cls", [OrderC, OrderCSlots])
+    @pytest.mark.parametrize("cls", [OrderCallableC, OrderCallableCSlots])
+    def test_ge_callable(self, cls):
+        """
+        __ge__ compares objects as tuples of attribute values.
+        """
+        # Note: "A" < "a"
+        for a, b in [
+            (("Test1", 1), ("test1", 1)),
+            (("Test1", 2), ("test1", 1)),
+            (("Test1", 1), ("test0", 1)),
+            (("Test1", 1), ("test0", 2)),
+        ]:
+            assert cls(*a) >= cls(*b)
+
+    @pytest.mark.parametrize(
+        "cls", [OrderC, OrderCSlots, OrderCallableC, OrderCallableCSlots]
+    )
     def test_ge_unordable(self, cls):
         """
         __ge__ returns NotImplemented if classes differ.
@@ -207,12 +314,11 @@ class TestEqOrder(object):
         assert NotImplemented == (cls(1, 2).__ge__(42))
 
 
-class TestAddRepr(object):
+class TestAddRepr:
     """
     Tests for `_add_repr`.
     """
 
-    @pytest.mark.parametrize("slots", [True, False])
     def test_repr(self, slots):
         """
         If `repr` is False, ignore that attribute.
@@ -240,7 +346,7 @@ class TestAddRepr(object):
             return "foo:" + str(value)
 
         @attr.s
-        class C(object):
+        class C:
             a = attr.ib(repr=custom_repr)
 
         assert "C(a=foo:1)" == repr(C(1))
@@ -252,7 +358,7 @@ class TestAddRepr(object):
         """
 
         @attr.s
-        class Cycle(object):
+        class Cycle:
             value = attr.ib(default=7)
             cycle = attr.ib(default=None)
 
@@ -260,12 +366,29 @@ class TestAddRepr(object):
         cycle.cycle = cycle
         assert "Cycle(value=7, cycle=...)" == repr(cycle)
 
+    def test_infinite_recursion_long_cycle(self):
+        """
+        A cyclic graph can pass through other non-attrs objects, and repr will
+        still emit an ellipsis and not raise an exception.
+        """
+
+        @attr.s
+        class LongCycle:
+            value = attr.ib(default=14)
+            cycle = attr.ib(default=None)
+
+        cycle = LongCycle()
+        # Ensure that the reference cycle passes through a non-attrs object.
+        # This demonstrates the need for a thread-local "global" ID tracker.
+        cycle.cycle = {"cycle": [cycle]}
+        assert "LongCycle(value=14, cycle={'cycle': [...]})" == repr(cycle)
+
     def test_underscores(self):
         """
         repr does not strip underscores.
         """
 
-        class C(object):
+        class C:
             __attrs_attrs__ = [simple_attr("_x")]
 
         C = _add_repr(C)
@@ -314,21 +437,21 @@ class TestAddRepr(object):
 # these are for use in TestAddHash.test_cache_hash_serialization
 # they need to be out here so they can be un-pickled
 @attr.attrs(hash=True, cache_hash=False)
-class HashCacheSerializationTestUncached(object):
+class HashCacheSerializationTestUncached:
     foo_value = attr.ib()
 
 
 @attr.attrs(hash=True, cache_hash=True)
-class HashCacheSerializationTestCached(object):
+class HashCacheSerializationTestCached:
     foo_value = attr.ib()
 
 
 @attr.attrs(slots=True, hash=True, cache_hash=True)
-class HashCacheSerializationTestCachedSlots(object):
+class HashCacheSerializationTestCachedSlots:
     foo_value = attr.ib()
 
 
-class IncrementingHasher(object):
+class IncrementingHasher:
     def __init__(self):
         self.hash_value = 100
 
@@ -338,7 +461,7 @@ class IncrementingHasher(object):
         return rv
 
 
-class TestAddHash(object):
+class TestAddHash:
     """
     Tests for `_add_hash`.
     """
@@ -521,8 +644,6 @@ class TestAddHash(object):
         assert 1 == cached_instance.hash_counter.times_hash_called
 
     @pytest.mark.parametrize("cache_hash", [True, False])
-    @pytest.mark.parametrize("frozen", [True, False])
-    @pytest.mark.parametrize("slots", [True, False])
     def test_copy_hash_cleared(self, cache_hash, frozen, slots):
         """
         Test that the default hash is recalculated after a copy operation.
@@ -535,7 +656,7 @@ class TestAddHash(object):
             kwargs["hash"] = True
 
         @attr.s(**kwargs)
-        class C(object):
+        class C:
             x = attr.ib()
 
         a = C(IncrementingHasher())
@@ -576,7 +697,6 @@ class TestAddHash(object):
 
         assert original_hash != hash(obj_rt)
 
-    @pytest.mark.parametrize("frozen", [True, False])
     def test_copy_two_arg_reduce(self, frozen):
         """
         If __getstate__ returns None, the tuple returned by object.__reduce__
@@ -585,7 +705,7 @@ class TestAddHash(object):
         """
 
         @attr.s(frozen=frozen, cache_hash=True, hash=True)
-        class C(object):
+        class C:
             x = attr.ib()
 
             def __getstate__(self):
@@ -603,7 +723,7 @@ class TestAddHash(object):
         return pickle.loads(pickle_str)
 
 
-class TestAddInit(object):
+class TestAddInit:
     """
     Tests for `_add_init`.
     """
@@ -622,9 +742,8 @@ class TestAddInit(object):
         with pytest.raises(TypeError) as e:
             C(a=1, b=2)
 
-        assert (
+        assert e.value.args[0].endswith(
             "__init__() got an unexpected keyword argument 'a'"
-            == e.value.args[0]
         )
 
     @given(booleans(), booleans())
@@ -677,7 +796,7 @@ class TestAddInit(object):
         If a default value is present, it's used as fallback.
         """
 
-        class C(object):
+        class C:
             __attrs_attrs__ = [
                 simple_attr(name="a", default=2),
                 simple_attr(name="b", default="hallo"),
@@ -695,10 +814,10 @@ class TestAddInit(object):
         If a default factory is present, it's used as fallback.
         """
 
-        class D(object):
+        class D:
             pass
 
-        class C(object):
+        class C:
             __attrs_attrs__ = [
                 simple_attr(name="a", default=Factory(list)),
                 simple_attr(name="b", default=Factory(D)),
@@ -773,7 +892,7 @@ class TestAddInit(object):
         underscores.
         """
 
-        class C(object):
+        class C:
             __attrs_attrs__ = [simple_attr("_private")]
 
         C = _add_init(C, False)
@@ -781,36 +900,43 @@ class TestAddInit(object):
         assert 42 == i._private
 
 
-class TestNothing(object):
+class TestNothing:
     """
-    Tests for `_Nothing`.
+    Tests for `NOTHING`.
     """
 
     def test_copy(self):
         """
         __copy__ returns the same object.
         """
-        n = _Nothing()
+        n = NOTHING
         assert n is copy.copy(n)
 
     def test_deepcopy(self):
         """
         __deepcopy__ returns the same object.
         """
-        n = _Nothing()
+        n = NOTHING
         assert n is copy.deepcopy(n)
 
     def test_eq(self):
         """
         All instances are equal.
         """
-        assert _Nothing() == _Nothing() == NOTHING
-        assert not (_Nothing() != _Nothing())
-        assert 1 != _Nothing()
+        assert NOTHING == NOTHING == NOTHING
+        assert not (NOTHING != NOTHING)
+        assert 1 != NOTHING
+
+    def test_false(self):
+        """
+        NOTHING evaluates as falsey.
+        """
+        assert not NOTHING
+        assert False is bool(NOTHING)
 
 
 @attr.s(hash=True, order=True)
-class C(object):
+class C:
     pass
 
 
@@ -819,11 +945,21 @@ OriginalC = C
 
 
 @attr.s(hash=True, order=True)
-class C(object):
+class C:
     pass
 
 
-class TestFilenames(object):
+CopyC = C
+
+
+@attr.s(hash=True, order=True)
+class C:
+    """A different class, to generate different methods."""
+
+    a = attr.ib()
+
+
+class TestFilenames:
     def test_filenames(self):
         """
         The created dunder methods have a "consistent" filename.
@@ -841,14 +977,26 @@ class TestFilenames(object):
             == "<attrs generated hash tests.test_dunders.C>"
         )
         assert (
+            CopyC.__init__.__code__.co_filename
+            == "<attrs generated init tests.test_dunders.C>"
+        )
+        assert (
+            CopyC.__eq__.__code__.co_filename
+            == "<attrs generated eq tests.test_dunders.C>"
+        )
+        assert (
+            CopyC.__hash__.__code__.co_filename
+            == "<attrs generated hash tests.test_dunders.C>"
+        )
+        assert (
             C.__init__.__code__.co_filename
-            == "<attrs generated init tests.test_dunders.C-2>"
+            == "<attrs generated init tests.test_dunders.C-1>"
         )
         assert (
             C.__eq__.__code__.co_filename
-            == "<attrs generated eq tests.test_dunders.C-2>"
+            == "<attrs generated eq tests.test_dunders.C-1>"
         )
         assert (
             C.__hash__.__code__.co_filename
-            == "<attrs generated hash tests.test_dunders.C-2>"
+            == "<attrs generated hash tests.test_dunders.C-1>"
         )

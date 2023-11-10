@@ -7,11 +7,11 @@ Subject: Point intersphinx_mapping at local Python docs.
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/docs/conf.py b/docs/conf.py
-index 323788c..d4855dd 100644
+index ef5c419..83a5993 100644
 --- a/docs/conf.py
 +++ b/docs/conf.py
-@@ -168,7 +168,7 @@ texinfo_documents = [
- ]
+@@ -163,7 +163,7 @@ texinfo_documents = [
+ epub_description = "Python Clases Without Boilerplate"
  
  intersphinx_mapping = {
 -    "https://docs.python.org/3": None,
