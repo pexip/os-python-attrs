@@ -1,3 +1,9 @@
+python-attrs (22.2.0-1pexip1) pexip-bookworm; urgency=medium
+
+  * Initial bookworm build
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Thu, 16 Nov 2023 10:21:41 +0000
+
 python-attrs (22.2.0-1) unstable; urgency=medium
 
   * Team upload.
