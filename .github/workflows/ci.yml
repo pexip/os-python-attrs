@@ -52,7 +52,7 @@ jobs:
             github.com:443
             objects.githubusercontent.com:443
             pypi.org:443
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
@@ -87,7 +87,7 @@ jobs:
             pypi.org:443
             api.github.com:443
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
         with:
           # Use latest Python, so it understands all syntax.
@@ -127,7 +127,7 @@ jobs:
             github.com:443
             pypi.org:443
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
         with:
           python-version: "3.10"
@@ -151,7 +151,7 @@ jobs:
             registry.npmjs.org:443
             api.github.com:443
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
         with:
           python-version: ${{env.PYTHON_LATEST}}
@@ -173,7 +173,7 @@ jobs:
             github.com:443
             pypi.org:443
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: hynek/build-and-inspect-python-package@v1
 
   install-dev:
@@ -193,7 +193,7 @@ jobs:
             github.com:443
             pypi.org:443
             api.github.com:443
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
         with:
           python-version: ${{env.PYTHON_LATEST}}
