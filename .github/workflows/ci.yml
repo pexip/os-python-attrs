@@ -174,7 +174,7 @@ jobs:
             pypi.org:443
 
       - uses: actions/checkout@v3
-      - uses: hynek/build-and-inspect-python-package@v1
+      - uses: hynek/build-and-inspect-python-package@v2
 
   install-dev:
     name: Verify dev env
