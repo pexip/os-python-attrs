@@ -1,83 +1,79 @@
 # SPDX-License-Identifier: MIT
 
+from __future__ import annotations
+
 import json
-import os.path
 import shutil
 import subprocess
-import sys
+
+from pathlib import Path
 
 import pytest
 
-import attrs
-
 
 pytestmark = [
-    pytest.mark.skipif(
-        sys.version_info < (3, 7), reason="Requires Python 3.7+."
-    ),
     pytest.mark.skipif(
         shutil.which("pyright") is None, reason="Requires pyright."
     ),
 ]
 
 
-@attrs.frozen
-class PyrightDiagnostic:
-    severity: str
-    message: str
-
-
-def parse_pyright_output(test_file):
-    pyright = subprocess.run(
+def parse_pyright_output(test_file: Path) -> set[tuple[str, str]]:
+    pyright = subprocess.run(  # noqa: PLW1510
         ["pyright", "--outputjson", str(test_file)], capture_output=True
     )
 
     pyright_result = json.loads(pyright.stdout)
 
+    # We use tuples instead of proper classes to get nicer diffs from pytest.
     return {
-        PyrightDiagnostic(d["severity"], d["message"])
+        (d["severity"], d["message"])
         for d in pyright_result["generalDiagnostics"]
     }
 
 
 def test_pyright_baseline():
     """
-    The __dataclass_transform__ decorator allows pyright to determine attrs
-    decorated class types.
+    The typing.dataclass_transform decorator allows pyright to determine
+    attrs decorated class types.
     """
 
-    test_file = os.path.dirname(__file__) + "/dataclass_transform_example.py"
+    test_file = Path(__file__).parent / "dataclass_transform_example.py"
 
     diagnostics = parse_pyright_output(test_file)
 
-    # Expected diagnostics as per pyright 1.1.135
     expected_diagnostics = {
-        PyrightDiagnostic(
-            severity="information",
-            message='Type of "Define.__init__" is'
-            ' "(self: Define, a: str, b: int) -> None"',
+        (
+            "information",
+            'Type of "Define.__init__" is "(self: Define, a: str, b: int) -> None"',
         ),
-        PyrightDiagnostic(
-            severity="information",
-            message='Type of "DefineConverter.__init__" is '
-            '"(self: DefineConverter, with_converter: int) -> None"',
+        (
+            "information",
+            'Type of "DefineConverter.__init__" is '
+            '"(self: DefineConverter, with_converter: str | Buffer | '
+            'SupportsInt | SupportsIndex | SupportsTrunc) -> None"',
         ),
-        PyrightDiagnostic(
-            severity="information",
-            message='Type of "d.a" is "Literal[\'new\']"',
+        (
+            "error",
+            'Cannot assign to attribute "a" for class '
+            '"Frozen"\n\xa0\xa0Attribute "a" is read-only',
         ),
-        PyrightDiagnostic(
-            severity="error",
-            message='Cannot assign member "a" for type '
-            '"FrozenDefine"\n\xa0\xa0"FrozenDefine" is frozen',
+        (
+            "information",
+            'Type of "d.a" is "Literal[\'new\']"',
         ),
-        PyrightDiagnostic(
-            severity="information",
-            message='Type of "d2.a" is "Literal[\'new\']"',
+        (
+            "error",
+            'Cannot assign to attribute "a" for class '
+            '"FrozenDefine"\n\xa0\xa0Attribute "a" is read-only',
         ),
-        PyrightDiagnostic(
-            severity="information",
-            message='Type of "af.__init__" is "(_a: int) -> None"',
+        (
+            "information",
+            'Type of "d2.a" is "Literal[\'new\']"',
+        ),
+        (
+            "information",
+            'Type of "af.__init__" is "(_a: int) -> None"',
         ),
     }
 
@@ -104,9 +100,9 @@ reveal_type(attrs.AttrsInstance)
 
     diagnostics = parse_pyright_output(test_pyright_attrsinstance_compat_path)
     expected_diagnostics = {
-        PyrightDiagnostic(
-            severity="information",
-            message='Type of "attrs.AttrsInstance" is "Type[AttrsInstance]"',
-        ),
+        (
+            "information",
+            'Type of "attrs.AttrsInstance" is "type[AttrsInstance]"',
+        )
     }
     assert diagnostics == expected_diagnostics

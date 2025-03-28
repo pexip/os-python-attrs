@@ -1,3 +1,73 @@
+python-attrs (25.3.0-1) unstable; urgency=medium
+
+  * New upstream version 25.3.0
+  * Bump Standards-Version to 4.7.2
+
+ -- Timo Röhling <roehling@debian.org>  Fri, 28 Mar 2025 15:02:43 +0100
+
+python-attrs (25.1.0-1) unstable; urgency=medium
+
+  * Update d/watch to latest GitHub recipe
+  * New upstream version 25.1.0
+  * Refresh patches (no functional changes)
+
+ -- Timo Röhling <roehling@debian.org>  Fri, 07 Feb 2025 10:48:28 +0100
+
+python-attrs (24.3.0-1) unstable; urgency=medium
+
+  * New upstream version 24.3.0
+  * Refresh patches (no functional changes)
+  * Wrap and sort Debian package files
+
+ -- Timo Röhling <roehling@debian.org>  Wed, 15 Jan 2025 21:31:48 +0100
+
+python-attrs (24.2.0-1) unstable; urgency=medium
+
+  * New upstream version 24.2.0
+  * Update patches
+    - Drop 0004-Fix-privacy-breaches.patch (obsolete)
+    - Drop 0005-Remove-pytest.deprecated_call-in-TestAssoc-test_unkn.patch
+      (merged upstream)
+  * Bump Standards-Version to 4.7.0
+
+ -- Timo Röhling <roehling@debian.org>  Tue, 20 Aug 2024 16:30:05 +0200
+
+python-attrs (23.2.0-2) unstable; urgency=medium
+
+  * Fix FTBFS with pytest 8 (Closes: #1064949)
+
+ -- Timo Röhling <roehling@debian.org>  Thu, 29 Feb 2024 22:44:40 +0100
+
+python-attrs (23.2.0-1) unstable; urgency=medium
+
+  * New upstream version 23.2.0
+
+ -- Timo Röhling <roehling@debian.org>  Tue, 02 Jan 2024 20:39:25 +0100
+
+python-attrs (23.1.0-2) unstable; urgency=medium
+
+  [ Bastian Germann ]
+  * Remove retired uploader
+
+  [ Timo Röhling ]
+  * Add myself as new uploader (Closes: #1041172)
+  * Update patches
+    - Mark Debian-specific patches as Forwarded: not-needed
+    - Drop Sphinx theme patch, furo theme is available in Debian now
+  * New Build-Depends on furo theme package
+  * Add nocheck/nodoc support
+
+ -- Timo Röhling <roehling@debian.org>  Wed, 26 Jul 2023 15:58:31 +0200
+
+python-attrs (23.1.0-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream version 23.1.0
+  * Refresh patches
+  * Switch to hatchling build system
+
+ -- Timo Röhling <roehling@debian.org>  Mon, 26 Jun 2023 22:06:03 +0200
+
 python-attrs (22.2.0-1) unstable; urgency=medium
 
   * Team upload.

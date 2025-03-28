@@ -2,20 +2,23 @@ From: Tristan Seligmann <mithrandi@mithrandi.net>
 Date: Mon, 10 Oct 2016 04:40:30 +0200
 Subject: Point intersphinx_mapping at local Python docs.
 
+Forwarded: not-needed
 ---
- docs/conf.py | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ docs/conf.py | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/docs/conf.py b/docs/conf.py
-index ef5c419..83a5993 100644
+index 171bff8..53aebef 100644
 --- a/docs/conf.py
 +++ b/docs/conf.py
-@@ -163,7 +163,7 @@ texinfo_documents = [
- epub_description = "Python Clases Without Boilerplate"
+@@ -182,7 +182,9 @@ texinfo_documents = [
  
- intersphinx_mapping = {
--    "https://docs.python.org/3": None,
+ epub_description = "Python Classes Without Boilerplate"
+ 
+-intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
++intersphinx_mapping = {
 +    'python': ('/usr/share/doc/python3-doc/html', '/usr/share/doc/python3-doc/html/objects.inv'),
- }
++}
  
  # Allow non-local URIs so we can have images in CHANGELOG etc.
+ suppress_warnings = ["image.nonlocal_uri"]

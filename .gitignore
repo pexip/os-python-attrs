@@ -10,6 +10,7 @@
 .pytest_cache
 .tox
 .vscode
+.venv*
 build
 dist
 docs/_build
@@ -18,3 +19,4 @@ tmp*
 attrs.docset
 attrs.tgz
 Justfile
+t.py

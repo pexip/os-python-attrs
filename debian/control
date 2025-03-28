@@ -2,23 +2,27 @@ Source: python-attrs
 Section: python
 Priority: optional
 Maintainer: Debian Python Team <team+python@tracker.debian.org>
-Uploaders: Tristan Seligmann <mithrandi@debian.org>
+Uploaders:
+ Timo Röhling <roehling@debian.org>,
 Rules-Requires-Root: no
 Build-Depends:
  debhelper-compat (= 13),
  dh-sequence-python3,
- dh-sequence-sphinxdoc,
+ dh-sequence-sphinxdoc <!nodoc>,
+ furo <!nodoc>,
  pybuild-plugin-pyproject,
  python3-all,
  python3-doc,
- python3-hypothesis,
- python3-myst-parser,
- python3-pytest,
- python3-setuptools,
- python3-sphinx,
- python3-sphinx-rtd-theme,
- python3-zope.interface,
-Standards-Version: 4.6.2
+ python3-hatch-fancy-pypi-readme,
+ python3-hatch-vcs,
+ python3-hatchling,
+ python3-hypothesis <!nocheck>,
+ python3-myst-parser <!nodoc>,
+ python3-pytest <!nocheck>,
+ python3-sphinx <!nodoc>,
+ python3-sphinx-rtd-theme <!nodoc>,
+ python3-zope.interface <!nodoc>,
+Standards-Version: 4.7.2
 Testsuite: autopkgtest-pkg-pybuild
 Homepage: https://attrs.readthedocs.org/
 Vcs-Git: https://salsa.debian.org/python-team/packages/python-attrs.git
@@ -26,9 +30,14 @@ Vcs-Browser: https://salsa.debian.org/python-team/packages/python-attrs
 
 Package: python3-attr
 Architecture: all
-Depends: ${misc:Depends}, ${python3:Depends}
-Recommends: ${python3:Recommends}
-Suggests: python-attr-doc, ${python3:Suggests}
+Depends:
+ ${misc:Depends},
+ ${python3:Depends},
+Recommends:
+ ${python3:Recommends},
+Suggests:
+ python-attr-doc,
+ ${python3:Suggests},
 Description: Attributes without boilerplate (Python 3)
  attrs is an MIT-licensed Python package with class decorators that ease the
  chores of implementing the most common attribute-related object protocols.
@@ -46,8 +55,11 @@ Package: python-attr-doc
 Section: doc
 Architecture: all
 Multi-Arch: foreign
-Depends: ${misc:Depends}, ${sphinxdoc:Depends}
-Recommends: python3-doc
+Depends:
+ ${misc:Depends},
+ ${sphinxdoc:Depends},
+Recommends:
+ python3-doc,
 Description: documentation for the attrs Python library
  attrs is an MIT-licensed Python package with class decorators that ease the
  chores of implementing the most common attribute-related object protocols.

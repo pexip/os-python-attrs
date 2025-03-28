@@ -4,7 +4,6 @@
 Tests for `attr.filters`.
 """
 
-
 import pytest
 
 import attr
@@ -30,8 +29,9 @@ class TestSplitWhat:
         """
         assert (
             frozenset((int, str)),
+            frozenset(("abcd", "123")),
             frozenset((fields(C).a,)),
-        ) == _split_what((str, fields(C).a, int))
+        ) == _split_what((str, "123", fields(C).a, int, "abcd"))
 
 
 class TestInclude:
@@ -40,12 +40,16 @@ class TestInclude:
     """
 
     @pytest.mark.parametrize(
-        "incl,value",
+        ("incl", "value"),
         [
             ((int,), 42),
             ((str,), "hello"),
             ((str, fields(C).a), 42),
             ((str, fields(C).b), "hello"),
+            (("a",), 42),
+            (("a",), "hello"),
+            (("a", str), 42),
+            (("a", fields(C).b), "hello"),
         ],
     )
     def test_allow(self, incl, value):
@@ -56,12 +60,16 @@ class TestInclude:
         assert i(fields(C).a, value) is True
 
     @pytest.mark.parametrize(
-        "incl,value",
+        ("incl", "value"),
         [
             ((str,), 42),
             ((int,), "hello"),
             ((str, fields(C).b), 42),
             ((int, fields(C).b), "hello"),
+            (("b",), 42),
+            (("b",), "hello"),
+            (("b", str), 42),
+            (("b", fields(C).b), "hello"),
         ],
     )
     def test_drop_class(self, incl, value):
@@ -78,12 +86,16 @@ class TestExclude:
     """
 
     @pytest.mark.parametrize(
-        "excl,value",
+        ("excl", "value"),
         [
             ((str,), 42),
             ((int,), "hello"),
             ((str, fields(C).b), 42),
             ((int, fields(C).b), "hello"),
+            (("b",), 42),
+            (("b",), "hello"),
+            (("b", str), 42),
+            (("b", fields(C).b), "hello"),
         ],
     )
     def test_allow(self, excl, value):
@@ -94,12 +106,16 @@ class TestExclude:
         assert e(fields(C).a, value) is True
 
     @pytest.mark.parametrize(
-        "excl,value",
+        ("excl", "value"),
         [
             ((int,), 42),
             ((str,), "hello"),
             ((str, fields(C).a), 42),
             ((str, fields(C).b), "hello"),
+            (("a",), 42),
+            (("a",), "hello"),
+            (("a", str), 42),
+            (("a", fields(C).b), "hello"),
         ],
     )
     def test_drop_class(self, excl, value):
