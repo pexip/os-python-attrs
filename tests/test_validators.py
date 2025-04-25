@@ -4,7 +4,6 @@
 Tests for `attr.validators`.
 """
 
-
 import re
 
 import pytest
@@ -30,28 +29,15 @@ from attr.validators import (
     min_len,
     not_,
     optional,
-    provides,
+    or_,
 )
 
 from .utils import simple_attr
 
 
-@pytest.fixture(scope="module")
-def zope_interface():
-    """Provides ``zope.interface`` if available, skipping the test if not."""
-    try:
-        import zope.interface
-    except ImportError:
-        raise pytest.skip(
-            "zope-related tests skipped when zope.interface is not installed"
-        )
-
-    return zope.interface
-
-
 class TestDisableValidators:
     @pytest.fixture(autouse=True)
-    def reset_default(self):
+    def _reset_default(self):
         """
         Make sure validators are always enabled after a test.
         """
@@ -64,7 +50,9 @@ class TestDisableValidators:
         """
         assert _config._run_validators is True
 
-    @pytest.mark.parametrize("value, expected", [(True, False), (False, True)])
+    @pytest.mark.parametrize(
+        ("value", "expected"), [(True, False), (False, True)]
+    )
     def test_set_validators_disabled(self, value, expected):
         """
         Sets `_run_validators`.
@@ -73,7 +61,9 @@ class TestDisableValidators:
 
         assert _config._run_validators is expected
 
-    @pytest.mark.parametrize("value, expected", [(True, False), (False, True)])
+    @pytest.mark.parametrize(
+        ("value", "expected"), [(True, False), (False, True)]
+    )
     def test_disabled(self, value, expected):
         """
         Returns `_run_validators`.
@@ -100,11 +90,10 @@ class TestDisableValidators:
         """
         assert _config._run_validators is True
 
-        with pytest.raises(ValueError):
-            with validator_module.disabled():
-                assert _config._run_validators is False
+        with pytest.raises(ValueError), validator_module.disabled():
+            assert _config._run_validators is False
 
-                raise ValueError("haha!")
+            raise ValueError("haha!")
 
         assert _config._run_validators is True
 
@@ -311,80 +300,13 @@ class TestAnd:
         assert C.__attrs_attrs__[0].validator == C.__attrs_attrs__[1].validator
 
 
-@pytest.fixture(scope="module")
-def ifoo(zope_interface):
-    """Provides a test ``zope.interface.Interface`` in ``zope`` tests."""
-
-    class IFoo(zope_interface.Interface):
-        """
-        An interface.
-        """
-
-        def f():
-            """
-            A function called f.
-            """
-
-    return IFoo
-
-
-class TestProvides:
-    """
-    Tests for `provides`.
-    """
-
-    def test_in_all(self):
-        """
-        Verify that this validator is in ``__all__``.
-        """
-        assert provides.__name__ in validator_module.__all__
-
-    def test_success(self, zope_interface, ifoo):
-        """
-        Nothing happens if value provides requested interface.
-        """
-
-        @zope_interface.implementer(ifoo)
-        class C:
-            def f(self):
-                pass
-
-        v = provides(ifoo)
-        v(None, simple_attr("x"), C())
-
-    def test_fail(self, ifoo):
-        """
-        Raises `TypeError` if interfaces isn't provided by value.
-        """
-        value = object()
-        a = simple_attr("x")
-
-        v = provides(ifoo)
-        with pytest.raises(TypeError) as e:
-            v(None, a, value)
-        assert (
-            "'x' must provide {interface!r} which {value!r} doesn't.".format(
-                interface=ifoo, value=value
-            ),
-            a,
-            ifoo,
-            value,
-        ) == e.value.args
-
-    def test_repr(self, ifoo):
-        """
-        Returned validator has a useful `__repr__`.
-        """
-        v = provides(ifoo)
-        assert (
-            "<provides validator for interface {interface!r}>".format(
-                interface=ifoo
-            )
-        ) == repr(v)
-
-
 @pytest.mark.parametrize(
-    "validator", [instance_of(int), [always_pass, instance_of(int)]]
+    "validator",
+    [
+        instance_of(int),
+        [always_pass, instance_of(int)],
+        (always_pass, instance_of(int)),
+    ],
 )
 class TestOptional:
     """
@@ -434,9 +356,14 @@ class TestOptional:
 
         if isinstance(validator, list):
             repr_s = (
-                "<optional validator for _AndValidator(_validators=[{func}, "
+                f"<optional validator for _AndValidator(_validators=[{always_pass!r}, "
                 "<instance_of validator for type <class 'int'>>]) or None>"
-            ).format(func=repr(always_pass))
+            )
+        elif isinstance(validator, tuple):
+            repr_s = (
+                f"<optional validator for _AndValidator(_validators=({always_pass!r}, "
+                "<instance_of validator for type <class 'int'>>)) or None>"
+            )
         else:
             repr_s = (
                 "<optional validator for <instance_of validator for type "
@@ -463,6 +390,7 @@ class TestIn_:
         """
         v = in_([1, 2, 3])
         a = simple_attr("test")
+
         v(1, a, 3)
 
     def test_fail(self):
@@ -504,6 +432,21 @@ class TestIn_:
         """
         v = in_([3, 4, 5])
         assert ("<in_ validator with options [3, 4, 5]>") == repr(v)
+
+    def test_is_hashable(self):
+        """
+        `in_` is hashable, so fields using it can be used with the include and
+        exclude filters.
+        """
+
+        @attr.s
+        class C:
+            x: int = attr.ib(validator=attr.validators.in_({1, 2}))
+
+        i = C(2)
+
+        attr.asdict(i, filter=attr.filters.include(lambda val: True))
+        attr.asdict(i, filter=attr.filters.exclude(lambda val: True))
 
 
 @pytest.fixture(
@@ -552,15 +495,15 @@ class TestDeepIterable:
         v(None, a, [42])
 
     @pytest.mark.parametrize(
-        "member_validator, iterable_validator",
-        (
+        ("member_validator", "iterable_validator"),
+        [
             (instance_of(int), 42),
             (42, instance_of(list)),
             (42, 42),
             (42, None),
             ([instance_of(int), 42], 42),
             ([42, instance_of(int)], 42),
-        ),
+        ],
     )
     def test_noncallable_validators(
         self, member_validator, iterable_validator
@@ -571,8 +514,8 @@ class TestDeepIterable:
         with pytest.raises(TypeError) as e:
             deep_iterable(member_validator, iterable_validator)
         value = 42
-        message = "must be callable (got {value} that is a {type_}).".format(
-            value=value, type_=value.__class__
+        message = (
+            f"must be callable (got {value} that is a {value.__class__})."
         )
 
         assert message in e.value.args[0]
@@ -620,8 +563,8 @@ class TestDeepIterable:
         member_repr = "<instance_of validator for type <class 'int'>>"
         v = deep_iterable(member_validator)
         expected_repr = (
-            "<deep_iterable validator for iterables of {member_repr}>"
-        ).format(member_repr=member_repr)
+            f"<deep_iterable validator for iterables of {member_repr}>"
+        )
         assert expected_repr == repr(v)
 
     def test_repr_member_only_sequence(self):
@@ -632,13 +575,13 @@ class TestDeepIterable:
         """
         member_validator = [always_pass, instance_of(int)]
         member_repr = (
-            "_AndValidator(_validators=({func}, "
+            f"_AndValidator(_validators=({always_pass!r}, "
             "<instance_of validator for type <class 'int'>>))"
-        ).format(func=repr(always_pass))
+        )
         v = deep_iterable(member_validator)
         expected_repr = (
-            "<deep_iterable validator for iterables of {member_repr}>"
-        ).format(member_repr=member_repr)
+            f"<deep_iterable validator for iterables of {member_repr}>"
+        )
         assert expected_repr == repr(v)
 
     def test_repr_member_and_iterable(self):
@@ -653,8 +596,8 @@ class TestDeepIterable:
         v = deep_iterable(member_validator, iterable_validator)
         expected_repr = (
             "<deep_iterable validator for"
-            " {iterable_repr} iterables of {member_repr}>"
-        ).format(iterable_repr=iterable_repr, member_repr=member_repr)
+            f" {iterable_repr} iterables of {member_repr}>"
+        )
         assert expected_repr == repr(v)
 
     def test_repr_sequence_member_and_iterable(self):
@@ -665,16 +608,16 @@ class TestDeepIterable:
         """
         member_validator = [always_pass, instance_of(int)]
         member_repr = (
-            "_AndValidator(_validators=({func}, "
+            f"_AndValidator(_validators=({always_pass!r}, "
             "<instance_of validator for type <class 'int'>>))"
-        ).format(func=repr(always_pass))
+        )
         iterable_validator = instance_of(list)
         iterable_repr = "<instance_of validator for type <class 'list'>>"
         v = deep_iterable(member_validator, iterable_validator)
         expected_repr = (
             "<deep_iterable validator for"
-            " {iterable_repr} iterables of {member_repr}>"
-        ).format(iterable_repr=iterable_repr, member_repr=member_repr)
+            f" {iterable_repr} iterables of {member_repr}>"
+        )
 
         assert expected_repr == repr(v)
 
@@ -701,14 +644,14 @@ class TestDeepMapping:
         v(None, a, {"a": 6, "b": 7})
 
     @pytest.mark.parametrize(
-        "key_validator, value_validator, mapping_validator",
-        (
+        ("key_validator", "value_validator", "mapping_validator"),
+        [
             (42, instance_of(int), None),
             (instance_of(str), 42, None),
             (instance_of(str), instance_of(int), 42),
             (42, 42, None),
             (42, 42, 42),
-        ),
+        ],
     )
     def test_noncallable_validators(
         self, key_validator, value_validator, mapping_validator
@@ -720,8 +663,8 @@ class TestDeepMapping:
             deep_mapping(key_validator, value_validator, mapping_validator)
 
         value = 42
-        message = "must be callable (got {value} that is a {type_}).".format(
-            value=value, type_=value.__class__
+        message = (
+            f"must be callable (got {value} that is a {value.__class__})."
         )
 
         assert message in e.value.args[0]
@@ -774,8 +717,8 @@ class TestDeepMapping:
         v = deep_mapping(key_validator, value_validator)
         expected_repr = (
             "<deep_mapping validator for objects mapping "
-            "{key_repr} to {value_repr}>"
-        ).format(key_repr=key_repr, value_repr=value_repr)
+            f"{key_repr} to {value_repr}>"
+        )
         assert expected_repr == repr(v)
 
 
@@ -875,7 +818,7 @@ class TestLtLeGeGt:
         assert fields(Tester).value.validator.bound == self.BOUND
 
     @pytest.mark.parametrize(
-        "v, value",
+        ("v", "value"),
         [
             (lt, 3),
             (le, 3),
@@ -895,7 +838,7 @@ class TestLtLeGeGt:
         Tester(value)  # shouldn't raise exceptions
 
     @pytest.mark.parametrize(
-        "v, value",
+        ("v", "value"),
         [
             (lt, 4),
             (le, 5),
@@ -919,9 +862,7 @@ class TestLtLeGeGt:
         __repr__ is meaningful.
         """
         nv = v(23)
-        assert repr(nv) == "<Validator for x {op} {bound}>".format(
-            op=nv.compare_op, bound=23
-        )
+        assert repr(nv) == f"<Validator for x {nv.compare_op} {23}>"
 
 
 class TestMaxLen:
@@ -1133,13 +1074,7 @@ class TestNot_:
         v = not_(wrapped)
 
         assert (
-            (
-                "<not_ validator wrapping {wrapped!r}, "
-                "capturing {exc_types!r}>"
-            ).format(
-                wrapped=wrapped,
-                exc_types=v.exc_types,
-            )
+            f"<not_ validator wrapping {wrapped!r}, capturing {v.exc_types!r}>"
         ) == repr(v)
 
     def test_success_because_fails(self):
@@ -1173,8 +1108,8 @@ class TestNot_:
 
         assert (
             (
-                "not_ validator child '{!r}' did not raise a captured error"
-            ).format(always_passes),
+                f"not_ validator child '{always_passes!r}' did not raise a captured error"
+            ),
             a,
             always_passes,
             input_value,
@@ -1237,8 +1172,8 @@ class TestNot_:
 
         assert (
             (
-                "not_ validator child '{!r}' did not raise a captured error"
-            ).format(wrapped),
+                f"not_ validator child '{wrapped!r}' did not raise a captured error"
+            ),
             a,
             wrapped,
             input_value,
@@ -1269,8 +1204,8 @@ class TestNot_:
 
         assert (
             (
-                "not_ validator child '{!r}' did not raise a captured error"
-            ).format(instance_of((int, float))),
+                f"not_ validator child '{instance_of((int, float))!r}' did not raise a captured error"
+            ),
             a,
             wrapped,
             input_value,
@@ -1341,3 +1276,38 @@ class TestNot_:
             "'exc_types' must be a subclass of <class 'Exception'> "
             "(got <class 'str'>)."
         ) == e.value.args[0]
+
+
+class TestOr:
+    def test_in_all(self):
+        """
+        Verify that this validator is in ``__all__``.
+        """
+        assert or_.__name__ in validator_module.__all__
+
+    def test_success(self):
+        """
+        Succeeds if at least one of wrapped validators succeed.
+        """
+        v = or_(instance_of(str), always_pass)
+
+        v(None, simple_attr("test"), 42)
+
+    def test_fail(self):
+        """
+        Fails if all wrapped validators fail.
+        """
+        v = or_(instance_of(str), always_fail)
+
+        with pytest.raises(ValueError):
+            v(None, simple_attr("test"), 42)
+
+    def test_repr(self):
+        """
+        Returned validator has a useful `__repr__`.
+        """
+        v = or_(instance_of(int), instance_of(str))
+        assert (
+            "<or validator wrapping (<instance_of validator for type "
+            "<class 'int'>>, <instance_of validator for type <class 'str'>>)>"
+        ) == repr(v)

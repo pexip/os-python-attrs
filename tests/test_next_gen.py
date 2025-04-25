@@ -6,12 +6,15 @@ Integration tests for next-generation APIs.
 
 import re
 
+from contextlib import contextmanager
 from functools import partial
 
 import pytest
 
 import attr as _attr  # don't use it by accident
 import attrs
+
+from attr._compat import PY_3_11_PLUS
 
 
 @attrs.define
@@ -27,6 +30,16 @@ class TestNextGen:
         """
         C("1", 2)
 
+    def test_field_type(self):
+        """
+        Make class with attrs.field and type parameter.
+        """
+        classFields = {"testint": attrs.field(type=int)}
+
+        A = attrs.make_class("A", classFields)
+
+        assert int is attrs.fields(A).testint.type
+
     def test_no_slots(self):
         """
         slots can be deactivated.
@@ -38,7 +51,7 @@ class TestNextGen:
 
         ns = NoSlots(1)
 
-        assert {"x": 1} == getattr(ns, "__dict__")
+        assert {"x": 1} == ns.__dict__
 
     def test_validates(self):
         """
@@ -215,7 +228,7 @@ class TestNextGen:
         @attrs.define
         class C:
             def __eq__(self, o):
-                raise ValueError()
+                raise ValueError
 
         with pytest.raises(ValueError):
             C() == C()
@@ -305,12 +318,54 @@ class TestNextGen:
 
         with pytest.raises(MyException) as ei:
             try:
-                raise ValueError()
+                raise ValueError
             except ValueError:
                 raise MyException("foo") from None
 
         assert "foo" == ei.value.x
         assert ei.value.__cause__ is None
+
+    @pytest.mark.parametrize(
+        "decorator",
+        [
+            partial(_attr.s, frozen=True, slots=True, auto_exc=True),
+            attrs.frozen,
+            attrs.define,
+            attrs.mutable,
+        ],
+    )
+    def test_setting_exception_mutable_attributes(self, decorator):
+        """
+        contextlib.contextlib (re-)sets __traceback__ on raised exceptions.
+
+        Ensure that works, as well as if done explicitly
+        """
+
+        @decorator
+        class MyException(Exception):
+            pass
+
+        @contextmanager
+        def do_nothing():
+            yield
+
+        with do_nothing(), pytest.raises(MyException) as ei:
+            raise MyException
+
+        assert isinstance(ei.value, MyException)
+
+        # this should not raise an exception either
+        ei.value.__traceback__ = ei.value.__traceback__
+        ei.value.__cause__ = ValueError("cause")
+        ei.value.__context__ = TypeError("context")
+        ei.value.__suppress_context__ = True
+        ei.value.__suppress_context__ = False
+        ei.value.__notes__ = []
+        del ei.value.__notes__
+
+        if PY_3_11_PLUS:
+            ei.value.add_note("note")
+            del ei.value.__notes__
 
     def test_converts_and_validates_by_default(self):
         """
@@ -346,7 +401,6 @@ class TestNextGen:
 
         @attrs.define
         class A:
-
             x: int = 10
 
             def xx(self):
