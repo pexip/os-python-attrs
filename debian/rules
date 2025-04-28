@@ -6,10 +6,10 @@ export PYBUILD_NAME=attr
 	dh $@ --buildsystem=pybuild
 
 execute_after_dh_auto_build:
+ifeq (,$(filter nodoc,$(DEB_BUILD_OPTIONS)))
 	PYTHONPATH=$(shell pybuild --print build_dir --interpreter python3) \
 	   http_proxy='127.0.0.1:9' \
 	   https_proxy='127.0.0.1:9' \
 	   python3 -m sphinx -N -b html docs/ $(CURDIR)/.pybuild/docs/html/
+endif
 
-override_dh_compress:
-	dh_compress -Xchangelog.html

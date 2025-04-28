@@ -1,8 +1,10 @@
 # SPDX-License-Identifier: MIT
 
+from __future__ import annotations
+
 import re
 
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Tuple
 
 import attr
 import attrs
@@ -49,12 +51,12 @@ CC(a=1)
 
 @attr.s
 class DD:
-    x: List[int] = attr.ib()
+    x: list[int] = attr.ib()
 
 
 @attr.s
 class EE:
-    y: "List[int]" = attr.ib()
+    y: "list[int]" = attr.ib()
 
 
 @attr.s
@@ -131,40 +133,52 @@ class AliasExample:
 attr.fields(AliasExample).without_alias.alias
 attr.fields(AliasExample)._with_alias.alias
 
+
 # Converters
-# XXX: Currently converters can only be functions so none of this works
-# although the stubs should be correct.
 
+
+@attr.s
+class ConvCOptional:
+    x: int | None = attr.ib(converter=attr.converters.optional(int))
+
+
+ConvCOptional(1)
+ConvCOptional(None)
+
+
+# XXX: Fails with E: Unsupported converter, only named functions, types and lambdas are currently supported  [misc]
+# See https://github.com/python/mypy/issues/15736
+#
 # @attr.s
-# class ConvCOptional:
-#     x: Optional[int] = attr.ib(converter=attr.converters.optional(int))
-
-
-# ConvCOptional(1)
-# ConvCOptional(None)
-
-
+# class ConvCPipe:
+#     x: str = attr.ib(converter=attr.converters.pipe(int, str))
+#
+#
+# ConvCPipe(3.4)
+# ConvCPipe("09")
+#
+#
 # @attr.s
 # class ConvCDefaultIfNone:
 #     x: int = attr.ib(converter=attr.converters.default_if_none(42))
-
-
+#
+#
 # ConvCDefaultIfNone(1)
 # ConvCDefaultIfNone(None)
 
 
-# @attr.s
-# class ConvCToBool:
-#     x: int = attr.ib(converter=attr.converters.to_bool)
+@attr.s
+class ConvCToBool:
+    x: int = attr.ib(converter=attr.converters.to_bool)
 
 
-# ConvCToBool(1)
-# ConvCToBool(True)
-# ConvCToBool("on")
-# ConvCToBool("yes")
-# ConvCToBool(0)
-# ConvCToBool(False)
-# ConvCToBool("n")
+ConvCToBool(1)
+ConvCToBool(True)
+ConvCToBool("on")
+ConvCToBool("yes")
+ConvCToBool(0)
+ConvCToBool(False)
+ConvCToBool("n")
 
 
 # Validators
@@ -176,7 +190,7 @@ class Validated:
             attr.validators.instance_of(C), attr.validators.instance_of(list)
         ),
     )
-    a = attr.ib(
+    aa = attr.ib(
         type=Tuple[C],
         validator=attr.validators.deep_iterable(
             attr.validators.instance_of(C), attr.validators.instance_of(tuple)
@@ -210,11 +224,12 @@ class Validated:
     # Test different forms of instance_of
     g: int = attr.ib(validator=attr.validators.instance_of(int))
     h: int = attr.ib(validator=attr.validators.instance_of((int,)))
-    j: Union[int, str] = attr.ib(
-        validator=attr.validators.instance_of((int, str))
-    )
-    k: Union[int, str, C] = attr.ib(
+    j: int | str = attr.ib(validator=attr.validators.instance_of((int, str)))
+    k: int | str | C = attr.ib(
         validator=attrs.validators.instance_of((int, C, str))
+    )
+    kk: int | str | C = attr.ib(
+        validator=attrs.validators.instance_of(int | C | str)
     )
 
     l: Any = attr.ib(
@@ -236,6 +251,15 @@ class Validated:
     p: Any = attr.ib(
         validator=attr.validators.not_(attr.validators.in_("abc"), msg=None)
     )
+    q: Any = attr.ib(
+        validator=attrs.validators.optional(attrs.validators.instance_of(C))
+    )
+    r: Any = attr.ib(
+        validator=attrs.validators.optional([attrs.validators.instance_of(C)])
+    )
+    s: Any = attr.ib(
+        validator=attrs.validators.optional((attrs.validators.instance_of(C),))
+    )
 
 
 @attr.define
@@ -245,7 +269,7 @@ class Validated2:
 
 @attrs.define
 class Validated3:
-    num: int = attr.field(validator=attr.validators.ge(0))
+    num: int = attrs.field(validator=attrs.validators.ge(0))
 
 
 with attr.validators.disabled():
@@ -315,14 +339,14 @@ class ValidatedSetter2:
 
 
 # field_transformer
-def ft_hook(cls: type, attribs: List[attr.Attribute]) -> List[attr.Attribute]:
+def ft_hook(cls: type, attribs: list[attr.Attribute]) -> list[attr.Attribute]:
     return attribs
 
 
 # field_transformer
 def ft_hook2(
-    cls: type, attribs: List[attrs.Attribute]
-) -> List[attrs.Attribute]:
+    cls: type, attribs: list[attrs.Attribute]
+) -> list[attrs.Attribute]:
     return attribs
 
 
@@ -386,16 +410,16 @@ class MRO:
 
 @attr.s
 class FactoryTest:
-    a: List[int] = attr.ib(default=attr.Factory(list))
-    b: List[Any] = attr.ib(default=attr.Factory(list, False))
-    c: List[int] = attr.ib(default=attr.Factory((lambda s: s.a), True))
+    a: list[int] = attr.ib(default=attr.Factory(list))
+    b: list[Any] = attr.ib(default=attr.Factory(list, False))
+    c: list[int] = attr.ib(default=attr.Factory((lambda s: s.a), True))
 
 
 @attrs.define
 class FactoryTest2:
-    a: List[int] = attrs.field(default=attrs.Factory(list))
-    b: List[Any] = attrs.field(default=attrs.Factory(list, False))
-    c: List[int] = attrs.field(default=attrs.Factory((lambda s: s.a), True))
+    a: list[int] = attrs.field(default=attrs.Factory(list))
+    b: list[Any] = attrs.field(default=attrs.Factory(list, False))
+    c: list[int] = attrs.field(default=attrs.Factory((lambda s: s.a), True))
 
 
 attrs.asdict(FactoryTest2())
@@ -432,6 +456,7 @@ def accessing_from_attr() -> None:
     attr.converters.optional
     attr.exceptions.FrozenError
     attr.filters.include
+    attr.filters.exclude
     attr.setters.frozen
     attr.validators.and_
     attr.cmp_using
@@ -444,6 +469,7 @@ def accessing_from_attrs() -> None:
     attrs.converters.optional
     attrs.exceptions.FrozenError
     attrs.filters.include
+    attrs.filters.exclude
     attrs.setters.frozen
     attrs.validators.and_
     attrs.cmp_using
@@ -457,3 +483,8 @@ if attrs.has(foo) or attr.has(foo):
 @attrs.define(unsafe_hash=True)
 class Hashable:
     pass
+
+
+def test(cls: type) -> None:
+    if attr.has(cls):
+        attr.resolve_types(cls)
